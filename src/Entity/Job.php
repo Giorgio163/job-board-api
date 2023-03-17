@@ -129,4 +129,24 @@ class Job
 
         return $this;
     }
+
+    public function toArray(): array
+    {
+        $companyDetails = [
+            'id' => $this->getCompany()->getId(),
+            'name' => $this->getCompany()->getName(),
+            'description' => $this->getCompany()->getDescription(),
+            'location' => $this->getCompany()->getLocation(),
+            'contactInformation' => $this->getCompany()->getContactInformation()
+        ];
+
+        return [
+            'id' => (string)$this->getId(),
+            'title' => $this->getTitle(),
+            'description' => $this->getDescription(),
+            'requiredSkills' => $this->getRequiredSkills(),
+            'experience' => $this->getExperience(),
+            'company' => $companyDetails
+        ];
+    }
 }

@@ -6,7 +6,6 @@ use App\Entity\Company;
 use App\Repository\CompanyRepository;
 use JsonException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -14,7 +13,7 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route(path: '/api')]
 class CompanyController extends AbstractController
 {
-
+    use FormatJsonResponse;
     /**
      * @throws JsonException
      */
@@ -97,14 +96,5 @@ class CompanyController extends AbstractController
         $repository->remove($company, true);
 
         return $this->JsonResponse('Company deleted');
-    }
-
-    private function JsonResponse(string $message, array $data = [], int $statusCode = 200): JsonResponse
-    {
-        return $this->json([
-            'statusCode' => $statusCode,
-            'message' => $message,
-            'data' => $data
-        ], $statusCode);
     }
 }
