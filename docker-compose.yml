@@ -1,7 +1,16 @@
 version: '3'
 
 services:
-###> doctrine/doctrine-bundle ###
+  php-fpm:
+    container_name: phpcoursem6.php-fpm
+    build: docker/php-fpm
+    working_dir: /application
+    volumes:
+      - '.:/application'
+      - './docker/php-fpm/php-ini-overrides.ini:/etc/php/8.2/fpm/conf.d/99-overrides.ini'
+
+
+  ###> doctrine/doctrine-bundle ###
   database:
     image: postgres:${POSTGRES_VERSION:-15}-alpine
     environment:
