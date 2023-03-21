@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
+use Symfony\Component\Serializer\Annotation\Ignore;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: JobRepository::class)]
@@ -44,6 +45,7 @@ class Job
     #[ORM\Column(length: 255)]
     private ?string $experience = null;
 
+    #[Ignore]
     #[Assert\NotBlank]
     #[ORM\ManyToOne(inversedBy: 'jobPosts')]
     private ?Company $company = null;
@@ -143,25 +145,5 @@ class Job
         $this->applicants->removeElement($applicant);
 
         return $this;
-    }
-
-    public function toArray(): array
-    {
-        $companyDetails = [
-            'id' => $this->getCompany()->getId(),
-            'name' => $this->getCompany()->getName(),
-            'description' => $this->getCompany()->getDescription(),
-            'location' => $this->getCompany()->getLocation(),
-            'contactInformation' => $this->getCompany()->getContactInformation()
-        ];
-
-        return [
-            'id' => (string)$this->getId(),
-            'title' => $this->getTitle(),
-            'description' => $this->getDescription(),
-            'requiredSkills' => $this->getRequiredSkills(),
-            'experience' => $this->getExperience(),
-            'company' => $companyDetails
-        ];
     }
 }

@@ -14,7 +14,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use OpenApi\Attributes as OA;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-#[OA\Tag(name: 'registration')]
+#[OA\Tag(name: 'auth')]
 class RegistrationController extends AbstractController
 {
     use FormatJsonResponse;
@@ -28,7 +28,7 @@ class RegistrationController extends AbstractController
         description: "Json to create a User",
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: "email", type: "string", example: "test@jagaad.com"),
+                new OA\Property(property: "email", type: "string", example: "test@email.com"),
                 new OA\Property(property: "password", type: "string", example: "insert password")
             ]
         )
@@ -66,7 +66,7 @@ class RegistrationController extends AbstractController
 
         $violations = $validator->validate($user);
 
-        if (count($violations) ===0) {
+        if (count($violations) === 0) {
             $userRepository->save($user, true);
 
             return $this->json((array)new ResponseDto('User created', [

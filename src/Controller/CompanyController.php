@@ -11,6 +11,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use OpenApi\Attributes as OA;
+use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route(path: '/api')]
@@ -61,8 +63,7 @@ class CompanyController extends AbstractController
         $violations = $validator->validate($company);
 
         if (count($violations)) {
-            $errorData = $this->getViolationsFromList($violations);
-            return $this->JsonResponse('Invalid input', $errorData, 400);
+            return $this->JsonResponse('Invalid input', $this->getViolationsFromList($violations), 400);
         }
 
         $repository->save($company, true);
@@ -72,22 +73,27 @@ class CompanyController extends AbstractController
         ], 201));
     }
 
+    /**
+     * @throws JsonException
+     */
     #[Route(path: "/companies", methods: ["GET"])]
     #[OA\Get(description: "Return all the companies")]
-    public function findAll(CompanyRepository $repository): Response
+    public function findAll(CompanyRepository $repository, SerializerInterface $serializer): Response
     {
         $companies = $repository->findAll();
 
-        $response = [];
-        foreach ($companies as $company){
-            $response[] = $company->toArray();
-        }
+        $defaultContext = [
+            AbstractNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($object, $format, $context) {
+                return;
+            },
+        ];
+        $json =$serializer->serialize($companies, 'json', $defaultContext);
 
-        return $this->JsonResponse('List of companies:', $response);
+        return $this->JsonResponse('List of companies:', $json);
     }
     #[Route(path: "/companies/{id}", methods: ["GET"])]
     #[OA\Get(description: "Return a company by ID")]
-    public function findById(CompanyRepository $repository, string $id): Response
+    public function findById(CompanyRepository $repository, string $id, SerializerInterface $serializer): Response
     {
         $company = $repository->find($id);
 
@@ -95,7 +101,14 @@ class CompanyController extends AbstractController
             return $this->JsonResponse('Company not found', ['id' => $id], 404);
         }
 
-        return $this->JsonResponse('Company by ID:', $company->toArray());
+        $defaultContext = [
+            AbstractNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($object, $format, $context) {
+                return;
+            },
+        ];
+        $json =$serializer->serialize($company, 'json', $defaultContext);
+
+        return $this->JsonResponse('List of companies:', $json);
     }
 
     /**
@@ -146,19 +159,18 @@ class CompanyController extends AbstractController
 
         $violations = $validator->validate($company);
 
-        if (count($violations) ===0) {
-            if (count($violations)) {
-                $errorData = $this->getViolationsFromList($violations);
-                return $this->JsonResponse('Invalid input', $errorData, 400);
-            }
+
+        if (count($violations)) {
+            return $this->JsonResponse('Invalid input', $this->getViolationsFromList($violations), 400);
         }
+
         $repository->save($company, true);
 
         return $this->json((array)new ResponseDto('Company updated', [
             'id' => (string)$company->getId()
         ], 201));
     }
-// lesson 4 1h 40m
+
     #[Route(path: "/companies/{id}", methods: ["DELETE"])]
     #[OA\Delete(description: "Delete a company by ID")]
     public function delete(CompanyRepository $repository, string $id): Response
