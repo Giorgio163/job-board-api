@@ -78,13 +78,19 @@ class jobController extends AbstractController
             'id' => (string)$company->getId()
         ], 201));
     }
+
+    /**
+     * @throws JsonException
+     */
     #[Route(path: "/jobs/{id}", methods: ["GET"])]
     #[OA\Get(description: "Return a job post by ID")]
     public function findById(?Job $job, SerializerInterface $serializer): JsonResponse
     {
         return $job->getCompany() === null
           ? $this->JsonResponse('Job post not found', [], 404)
-          : $this->JsonResponse('Job post found',  $serializer->serialize($job, 'json'));
+          : $this->JsonResponse('Job post found',  $serializer->serialize($job, 'json',
+                [AbstractNormalizer::IGNORED_ATTRIBUTES =>  ['jobPosts', '__isCloning']]
+            ));
     }
 
     /**
@@ -93,14 +99,13 @@ class jobController extends AbstractController
     #[Route(path: "/list-jobs", methods: ["GET"])]
     #[OA\Get(description: "Return all the job posts with optional filters")]
     #[OA\QueryParameter(name: "title", example: "jobTitle")]
-    #[OA\QueryParameter(name: "company", example: "companyName")] // lesson 2 54m
+    #[OA\QueryParameter(name: "companyName", example: "companyName")] // lesson 2 54m
     #[OA\QueryParameter(name: "location", example: "location")]
     #[OA\Response(
         response: 200,
         description: "List of job posts response",
         content: new OA\JsonContent(ref: new Model(type: ResponseDto::class))
     )]
-
     public function findAll(
         EntityManagerInterface $entityManager,
         Request $request,
@@ -108,7 +113,7 @@ class jobController extends AbstractController
     ): JsonResponse
     {
         $title = $request->get('title');
-        $company = $request->get('company');
+        $companyName = $request->get('companyName');
         $location = $request->get('location');
 
         $queryBuilder = $entityManager
@@ -121,9 +126,9 @@ class jobController extends AbstractController
                 ->setParameter(':title', "%$title%");
         }
 
-        if ($company !== null) {
-            $queryBuilder->andWhere('j.company LIKE :company')
-                ->setParameter(':company', "%$company%");
+        if ($companyName !== null) {
+            $queryBuilder->andWhere('c.name LIKE :companyName')
+                ->setParameter(':companyName', "%$companyName%");
         }
 
         if ($location !== null) {
@@ -135,12 +140,16 @@ class jobController extends AbstractController
 
         $jobPosts = $queryBuilder->getQuery()->execute();
 
-        $json = $serializer->serialize($jobPosts, 'json');
-
-        return $this->jsonResponse('List of job posts', $json);
+       return $this->jsonResponse('List of job posts',
+            $serializer->serialize($jobPosts, 'json',[AbstractNormalizer::IGNORED_ATTRIBUTES => ['jobPosts',
+                    '__isCloning']]
+            ));
     }
 
-        #[Route(path: "/jobs/{id}", methods: ["PUT"])]
+    /**
+     * @throws JsonException
+     */
+    #[Route(path: "/jobs/{id}", methods: ["PUT"])]
     #[OA\Put(description: "Update a job post by ID")]
     #[OA\RequestBody(
         description: "Json to Update a job post",
@@ -195,6 +204,10 @@ class jobController extends AbstractController
             'id' => (string)$jobPost->getId()
         ], 201));
     }
+
+    /**
+     * @throws JsonException
+     */
     #[Route(path: "/jobs/{id}", methods: ["DELETE"])]
     #[OA\Delete(description: "Delete a job post by ID")]
     public function delete(JobRepository $jobRepository, string $id): Response
@@ -207,6 +220,6 @@ class jobController extends AbstractController
 
         $jobRepository->remove($jobPost, true);
 
-        return $this->JsonResponse('job post deleted');
+        return $this->JsonResponse('job post deleted', []);
     }
 }

@@ -22,7 +22,7 @@ class RegistrationController extends AbstractController
     /**
      * @throws \JsonException
      */
-    #[Route(path: "/api/register", methods: ["POST"])]
+    #[Route(path: "/api/auth/signup", methods: ["POST"])]
     #[OA\Post(description: "Create User")]
     #[OA\RequestBody(
         description: "Json to create a User",

@@ -63,7 +63,9 @@ class CompanyController extends AbstractController
         $violations = $validator->validate($company);
 
         if (count($violations)) {
-            return $this->JsonResponse('Invalid input', $this->getViolationsFromList($violations), 400);
+            return $this->JsonResponse('Invalid input', $this->getViolationsFromList($violations),
+                400
+            );
         }
 
         $repository->save($company, true);
@@ -82,15 +84,16 @@ class CompanyController extends AbstractController
     {
         $companies = $repository->findAll();
 
-        $defaultContext = [
-            AbstractNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($object, $format, $context) {
-                return;
-            },
-        ];
-        $json =$serializer->serialize($companies, 'json', $defaultContext);
+        $json =$serializer->serialize($companies, 'json',
+            [AbstractNormalizer::IGNORED_ATTRIBUTES => ['company', '__isCloning']]
+        );
 
         return $this->JsonResponse('List of companies:', $json);
     }
+
+    /**
+     * @throws JsonException
+     */
     #[Route(path: "/companies/{id}", methods: ["GET"])]
     #[OA\Get(description: "Return a company by ID")]
     public function findById(CompanyRepository $repository, string $id, SerializerInterface $serializer): Response
@@ -101,12 +104,8 @@ class CompanyController extends AbstractController
             return $this->JsonResponse('Company not found', ['id' => $id], 404);
         }
 
-        $defaultContext = [
-            AbstractNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($object, $format, $context) {
-                return;
-            },
-        ];
-        $json =$serializer->serialize($company, 'json', $defaultContext);
+        $json =$serializer->serialize($company, 'json', [AbstractNormalizer::IGNORED_ATTRIBUTES => ['company',
+            '__isCloning']]);
 
         return $this->JsonResponse('List of companies:', $json);
     }
@@ -161,7 +160,9 @@ class CompanyController extends AbstractController
 
 
         if (count($violations)) {
-            return $this->JsonResponse('Invalid input', $this->getViolationsFromList($violations), 400);
+            return $this->JsonResponse('Invalid input',
+                $this->getViolationsFromList($violations), 400
+            );
         }
 
         $repository->save($company, true);
@@ -171,6 +172,9 @@ class CompanyController extends AbstractController
         ], 201));
     }
 
+    /**
+     * @throws JsonException
+     */
     #[Route(path: "/companies/{id}", methods: ["DELETE"])]
     #[OA\Delete(description: "Delete a company by ID")]
     public function delete(CompanyRepository $repository, string $id): Response
@@ -183,6 +187,6 @@ class CompanyController extends AbstractController
 
         $repository->remove($company, true);
 
-        return $this->JsonResponse('Company deleted');
+        return $this->JsonResponse('Company deleted', []);
     }
 }

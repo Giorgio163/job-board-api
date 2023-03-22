@@ -45,7 +45,7 @@ class Job
     #[ORM\Column(length: 255)]
     private ?string $experience = null;
 
-    #[Ignore]
+
     #[Assert\NotBlank]
     #[ORM\ManyToOne(inversedBy: 'jobPosts')]
     private ?Company $company = null;
