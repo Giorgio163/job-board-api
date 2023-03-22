@@ -1,5 +1,5 @@
 <p align="center">
-  <img align="center" height="200" src="./docker/symfony.jpg">
+  <img align="center" height="200" src="./docker/symfony.png">
 </p>
 
 # JOB-BOARD-API
