@@ -58,7 +58,7 @@ REST API to handle job posts created to learn Symfony, Doctrine ORM, and API doc
 To generate the jwt keys, run the following command: `docker-compose run -it php-fpm php bin/console lexik:jwt:generate-keypair`.*
 ## Routes
 To access the API documentation, go to http://localhost:8000/api/doc.
-![Swagger](./docker/api_docs.png)
+
 ## Quality Tools
 You can run PHP codesniffer to check the code quality and PHPStan for static analysis.
 ### Code Style
@@ -79,7 +79,7 @@ composer require --dev phpstan/phpstan
 
 Run PHPStan:
 ```
-php vendor/bin/phpstan
+vendor/bin/phpstan analyse src
 ```
 ## Learn More
 To know more about the development of Symfony applications, [check the official documentation](https://symfony.com/doc/current/index.html).d
