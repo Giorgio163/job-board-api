@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Controller\ApiDocumentation;
+
 use App\Controller\ResponseDto;
 use Nelmio\ApiDocBundle\Annotation\Model;
 use OpenApi\Attributes as OA;
@@ -26,5 +27,7 @@ class UserApiController
         description: 'Return the token',
         content: new OA\JsonContent(ref: new Model(type: ResponseDto::class))
     )]
-    public function login(): void {}
+    public function login(): void
+    {
+    }
 }

@@ -10,6 +10,7 @@ use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Serializer\Annotation\Ignore;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Constraints as Assert;
+
 #[ORM\Entity(repositoryClass: JobRepository::class)]
 class Job
 {
@@ -21,17 +22,21 @@ class Job
 
     #[Assert\NotBlank]
     #[Assert\Length(min: 3, max: 255)]
-    #[Assert\Regex(pattern: '/\d/',
+    #[Assert\Regex(
+        pattern: '/\d/',
         message: 'It should be a string',
-        match: false)]
+        match: false
+    )]
     #[ORM\Column(length: 255)]
     private ?string $title = null;
 
     #[Assert\NotBlank]
     #[Assert\Length(min: 3, max: 255)]
-    #[Assert\Regex(pattern: '/\d/',
+    #[Assert\Regex(
+        pattern: '/\d/',
         message: 'It should be a string',
-        match: false)]
+        match: false
+    )]
     #[ORM\Column(length: 255)]
     private ?string $description = null;
 

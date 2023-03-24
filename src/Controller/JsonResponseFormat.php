@@ -4,7 +4,7 @@ namespace App\Controller;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
 
-trait FormatJsonResponse
+trait JsonResponseFormat
 {
     private function getViolationsFromList($violations): array
     {
@@ -17,7 +17,10 @@ trait FormatJsonResponse
         return $errorData;
     }
 
-    private function JsonResponse(string $message, mixed $data, int $statusCode = 200): JsonResponse
+    /**
+     * @throws \JsonException
+     */
+    private function jsonResponse(string $message, mixed $data, int $statusCode = 200): JsonResponse
     {
         if (is_string($data)) {
             $data = json_decode($data, true, 512, JSON_THROW_ON_ERROR);

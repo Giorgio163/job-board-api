@@ -21,9 +21,10 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route(path: '/api')]
 #[OA\Tag(name: 'job post')]
-class jobController extends AbstractController
+class JobController extends AbstractController
 {
-    use FormatJsonResponse;
+    use JsonResponseFormat;
+
     /**
      * @throws JsonException
      */
@@ -51,11 +52,12 @@ class jobController extends AbstractController
         description: 'Invalid arguments',
         content: new OA\JsonContent(ref: new Model(type: ResponseDto::class))
     )]
-    public function create(JobRepository $jobRepository,
-                           CompanyRepository $companyRepository,
-                           Request $request,
-                           ValidatorInterface $validator): Response
-    {
+    public function create(
+        JobRepository $jobRepository,
+        CompanyRepository $companyRepository,
+        Request $request,
+        ValidatorInterface $validator
+    ): Response {
         $jsonParams = json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
 
         $job = new Job();
@@ -69,7 +71,7 @@ class jobController extends AbstractController
         $violations = $validator->validate($job);
 
         if (count($violations)) {
-            return $this->JsonResponse('Invalid input', $this->getViolationsFromList($violations), 400);
+            return $this->jsonResponse('Invalid input', $this->getViolationsFromList($violations), 400);
         }
 
         $jobRepository->save($job, true);
@@ -87,19 +89,21 @@ class jobController extends AbstractController
     public function findById(?Job $job, SerializerInterface $serializer): JsonResponse
     {
         return $job->getCompany() === null
-          ? $this->JsonResponse('Job post not found', [], 404)
-          : $this->JsonResponse('Job post found',  $serializer->serialize($job, 'json',
-                [AbstractNormalizer::IGNORED_ATTRIBUTES =>  ['jobPosts', '__isCloning']]
-            ));
+          ? $this->jsonResponse('Job post not found', [], 404)
+          : $this->jsonResponse('Job post found', $serializer->serialize(
+              $job,
+              'json',
+              [AbstractNormalizer::IGNORED_ATTRIBUTES =>  ['jobPosts', '__isCloning']]
+          ));
     }
 
     /**
      * @throws JsonException
      */
-    #[Route(path: "/list-jobs", methods: ["GET"])]
+    #[Route(path: "/jobs-posts", methods: ["GET"])]
     #[OA\Get(description: "Return all the job posts with optional filters")]
     #[OA\QueryParameter(name: "title", example: "jobTitle")]
-    #[OA\QueryParameter(name: "companyName", example: "companyName")] // lesson 2 54m
+    #[OA\QueryParameter(name: "companyName", example: "companyName")]
     #[OA\QueryParameter(name: "location", example: "location")]
     #[OA\Response(
         response: 200,
@@ -110,8 +114,7 @@ class jobController extends AbstractController
         EntityManagerInterface $entityManager,
         Request $request,
         SerializerInterface $serializer
-    ): JsonResponse
-    {
+    ): JsonResponse {
         $title = $request->get('title');
         $companyName = $request->get('companyName');
         $location = $request->get('location');
@@ -140,10 +143,11 @@ class jobController extends AbstractController
 
         $jobPosts = $queryBuilder->getQuery()->execute();
 
-       return $this->jsonResponse('List of job posts',
-            $serializer->serialize($jobPosts, 'json',[AbstractNormalizer::IGNORED_ATTRIBUTES => ['jobPosts',
-                    '__isCloning']]
-            ));
+        return $this->jsonResponse(
+            'List of job posts',
+            $serializer->serialize($jobPosts, 'json', [AbstractNormalizer::IGNORED_ATTRIBUTES => ['jobPosts',
+                    '__isCloning', 'applicants']])
+        );
     }
 
     /**
@@ -176,12 +180,12 @@ class jobController extends AbstractController
         JobRepository $jobRepository,
         Request $request,
         string $id,
-        ValidatorInterface $validator): Response
-    {
+        ValidatorInterface $validator
+    ): Response {
         $jobPost = $jobRepository->find($id);
 
-        if ($jobPost === null){
-            return $this->JsonResponse('job post not found', ['id' => $id], 404);
+        if ($jobPost === null) {
+            return $this->jsonResponse('job post not found', ['id' => $id], 404);
         }
 
         $jsonParams = json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
@@ -195,7 +199,7 @@ class jobController extends AbstractController
 
 
         if (count($violations)) {
-            return $this->JsonResponse('Invalid input', $this->getViolationsFromList($violations), 400);
+            return $this->jsonResponse('Invalid input', $this->getViolationsFromList($violations), 400);
         }
 
         $jobRepository->save($jobPost, true);
@@ -214,12 +218,12 @@ class jobController extends AbstractController
     {
         $jobPost = $jobRepository->find($id);
 
-        if ($jobPost === null){
-            return $this->JsonResponse('job post not found', ['id' => $id], 404);
+        if ($jobPost === null) {
+            return $this->jsonResponse('job post not found', ['id' => $id], 404);
         }
 
         $jobRepository->remove($jobPost, true);
 
-        return $this->JsonResponse('job post deleted', []);
+        return $this->jsonResponse('job post deleted', []);
     }
 }

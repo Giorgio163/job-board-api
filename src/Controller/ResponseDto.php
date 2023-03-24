@@ -1,7 +1,9 @@
 <?php
 
 namespace App\Controller;
+
 use OpenApi\Attributes as OA;
+
 class ResponseDto
 {
     public function __construct(
@@ -13,5 +15,4 @@ class ResponseDto
         public readonly int $statusCode = 200,
     ) {
     }
-
 }

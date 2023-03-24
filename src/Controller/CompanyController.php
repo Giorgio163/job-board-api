@@ -19,7 +19,8 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 #[OA\Tag(name: 'company')]
 class CompanyController extends AbstractController
 {
-    use FormatJsonResponse;
+    use JsonResponseFormat;
+
     /**
      * @throws JsonException
      */
@@ -50,8 +51,7 @@ class CompanyController extends AbstractController
         CompanyRepository $repository,
         Request $request,
         ValidatorInterface $validator
-    ): Response
-    {
+    ): Response {
         $jsonParams = json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
 
         $company = new Company();
@@ -63,7 +63,9 @@ class CompanyController extends AbstractController
         $violations = $validator->validate($company);
 
         if (count($violations)) {
-            return $this->JsonResponse('Invalid input', $this->getViolationsFromList($violations),
+            return $this->jsonResponse(
+                'Invalid input',
+                $this->getViolationsFromList($violations),
                 400
             );
         }
@@ -84,11 +86,13 @@ class CompanyController extends AbstractController
     {
         $companies = $repository->findAll();
 
-        $json =$serializer->serialize($companies, 'json',
+        $json = $serializer->serialize(
+            $companies,
+            'json',
             [AbstractNormalizer::IGNORED_ATTRIBUTES => ['company', '__isCloning']]
         );
 
-        return $this->JsonResponse('List of companies:', $json);
+        return $this->jsonResponse('List of companies:', $json);
     }
 
     /**
@@ -100,14 +104,14 @@ class CompanyController extends AbstractController
     {
         $company = $repository->find($id);
 
-        if ($company === null){
-            return $this->JsonResponse('Company not found', ['id' => $id], 404);
+        if ($company === null) {
+            return $this->jsonResponse('Company not found', ['id' => $id], 404);
         }
 
-        $json =$serializer->serialize($company, 'json', [AbstractNormalizer::IGNORED_ATTRIBUTES => ['company',
+        $json = $serializer->serialize($company, 'json', [AbstractNormalizer::IGNORED_ATTRIBUTES => ['company',
             '__isCloning']]);
 
-        return $this->JsonResponse('List of companies:', $json);
+        return $this->jsonResponse('List of companies:', $json);
     }
 
     /**
@@ -122,8 +126,11 @@ class CompanyController extends AbstractController
                 new OA\Property(property: "name", type: "string", example: "Company Update Name"),
                 new OA\Property(property: "description", type: "string", example: "Company Update Description"),
                 new OA\Property(property: "location", type: "string", example: "Company Update location"),
-                new OA\Property(property: "contactInformation", type: "string",
-                    example: "Company Update contact information")
+                new OA\Property(
+                    property: "contactInformation",
+                    type: "string",
+                    example: "Company Update contact information"
+                )
             ]
         )
     )]
@@ -141,12 +148,12 @@ class CompanyController extends AbstractController
         CompanyRepository $repository,
         Request $request,
         string $id,
-        ValidatorInterface $validator): Response
-    {
+        ValidatorInterface $validator
+    ): Response {
         $company = $repository->find($id);
 
-        if ($company === null){
-            return $this->JsonResponse('Company not found', ['id' => $id], 404);
+        if ($company === null) {
+            return $this->jsonResponse('Company not found', ['id' => $id], 404);
         }
 
         $jsonParams = json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
@@ -160,8 +167,10 @@ class CompanyController extends AbstractController
 
 
         if (count($violations)) {
-            return $this->JsonResponse('Invalid input',
-                $this->getViolationsFromList($violations), 400
+            return $this->jsonResponse(
+                'Invalid input',
+                $this->getViolationsFromList($violations),
+                400
             );
         }
 
@@ -181,12 +190,12 @@ class CompanyController extends AbstractController
     {
         $company = $repository->find($id);
 
-        if ($company === null){
-            return $this->JsonResponse('Company not found', ['id' => $id], 404);
+        if ($company === null) {
+            return $this->jsonResponse('Company not found', ['id' => $id], 404);
         }
 
         $repository->remove($company, true);
 
-        return $this->JsonResponse('Company deleted', []);
+        return $this->jsonResponse('Company deleted', []);
     }
 }

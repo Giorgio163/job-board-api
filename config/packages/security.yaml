@@ -45,7 +45,7 @@ security:
         - { path: ^/api/login,         roles: PUBLIC_ACCESS }
         - { path: ^/api/auth/signup,   roles: PUBLIC_ACCESS }
         - { path: ^/api/doc,           roles: PUBLIC_ACCESS }
-        - { path: ^/api/list-jobs,          roles: PUBLIC_ACCESS }
+        - { path: ^/api/jobs-posts,    roles: PUBLIC_ACCESS }
         - { path: ^/api,               roles: IS_AUTHENTICATED_FULLY }
 
 when@test:

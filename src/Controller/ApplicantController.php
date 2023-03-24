@@ -1,17 +1,24 @@
 <?php
 
 namespace App\Controller;
+
 use App\Entity\Applicant;
 use App\Entity\User;
 use App\Repository\ApplicantRepository;
+use App\Repository\JobRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Query\Expr\Join;
 use JsonException;
 use Nelmio\ApiDocBundle\Annotation\Model;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use OpenApi\Attributes as OA;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -19,7 +26,7 @@ use Symfony\Component\HttpFoundation\Response;
 #[OA\Tag(name: 'applicant')]
 class ApplicantController extends AbstractController
 {
-    use FormatJsonResponse;
+    use JsonResponseFormat;
 
     /**
      * @throws JsonException
@@ -31,8 +38,11 @@ class ApplicantController extends AbstractController
         content: new OA\JsonContent(
             properties: [
                 new OA\Property(property: "name", type: "string", example: "Applicant Name"),
-                new OA\Property(property: "contactInformation", type: "string",
-                    example: "Applicant contact information"),
+                new OA\Property(
+                    property: "contactInformation",
+                    type: "string",
+                    example: "Applicant contact information"
+                ),
                 new OA\Property(property: "jobPreferences", type: "string", example: "Applicant preferences")
             ]
         )
@@ -51,8 +61,7 @@ class ApplicantController extends AbstractController
         ApplicantRepository $applicantRepository,
         Request $request,
         ValidatorInterface $validator
-    ): Response
-    {
+    ): Response {
         $jsonParams = json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
 
         $applicant = new Applicant();
@@ -64,13 +73,13 @@ class ApplicantController extends AbstractController
 
         if (count($violations)) {
             $errorData = $this->getViolationsFromList($violations);
-            return $this->JsonResponse('Invalid inputs', $errorData, 400);
+            return $this->jsonResponse('Invalid inputs', $errorData, 400);
         }
 
         $applicantRepository->save($applicant, true);
 
         $data = [ 'id' => (string)$applicant->getId() ];
-        return $this->JsonResponse('Applicant created', $data, 201);
+        return $this->jsonResponse('Applicant created', $data, 201);
     }
 
     /**
@@ -92,9 +101,13 @@ class ApplicantController extends AbstractController
 
         $applicant = $applicantRepository->findAll();
 
-        return $this->JsonResponse(
+        return $this->jsonResponse(
             'List of applicants requested by ' . $user->getEmail(),
-                    $serializer->serialize($applicant, 'json')
+            $serializer->serialize(
+                $applicant,
+                'json',
+                [AbstractNormalizer::IGNORED_ATTRIBUTES => ['__isCloning', 'applicants', 'company']]
+            )
         );
     }
 
@@ -111,10 +124,10 @@ class ApplicantController extends AbstractController
         $applicant = $applicantRepository->find($id);
 
         if ($applicant === null) {
-            return $this->JsonResponse('Applicant not found', ['id' => $id], 404);
+            return $this->jsonResponse('Applicant not found', ['id' => $id], 404);
         }
 
-        return $this->JsonResponse('Applicant by ID', $serializer->serialize($applicant, 'json'));
+        return $this->jsonResponse('Applicant by ID', $serializer->serialize($applicant, 'json'));
     }
 
     /**
@@ -127,8 +140,11 @@ class ApplicantController extends AbstractController
         content: new OA\JsonContent(
             properties: [
                 new OA\Property(property: "name", type: "string", example: "Applicant updated Name"),
-                new OA\Property(property: "contactInformation", type: "string",
-                    example: "Applicant updated contact information"),
+                new OA\Property(
+                    property: "contactInformation",
+                    type: "string",
+                    example: "Applicant updated contact information"
+                ),
                 new OA\Property(property: "jobPreferences", type: "string", example: "Applicant updated preferences")
             ]
         )
@@ -153,7 +169,7 @@ class ApplicantController extends AbstractController
         $applicant = $applicantRepository->find($id);
 
         if ($applicant === null) {
-            return $this->JsonResponse('Applicant not found', ['id' => $id], 404);
+            return $this->jsonResponse('Applicant not found', ['id' => $id], 404);
         }
 
         $jsonParams = json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
@@ -166,11 +182,11 @@ class ApplicantController extends AbstractController
 
         if (count($violations)) {
             $errorData = $this->getViolationsFromList($violations);
-            return $this->JsonResponse('Invalid inputs', $errorData, 400);
+            return $this->jsonResponse('Invalid inputs', $errorData, 400);
         }
 
         $applicantRepository->save($applicant, true);
-         return $this->JsonResponse('Applicant updated', $serializer->serialize($applicant, 'json'));
+         return $this->jsonResponse('Applicant updated', $serializer->serialize($applicant, 'json'));
     }
 
     /**
@@ -183,11 +199,180 @@ class ApplicantController extends AbstractController
         $applicant = $applicantRepository->find($id);
 
         if ($applicant === null) {
-            return $this->JsonResponse('Applicant not found', ['id' => $id], 404);
+            return $this->jsonResponse('Applicant not found', ['id' => $id], 404);
         }
 
         $applicantRepository->remove($applicant, true);
 
-        return $this->JsonResponse('Applicant removed', []);
+        return $this->jsonResponse('Applicant removed', []);
+    }
+
+    /**
+     * @throws JsonException
+     */
+    #[Route(path: "/job-applicants/apply/{id}", methods: ["PUT"])]
+    #[OA\Put(description: "Apply for a job")]
+    #[OA\RequestBody(
+        description: "Json to Apply for a job",
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(
+                    property: "jobsApplied",
+                    type: "string",
+                    example: "ID of the job you want to apply for"
+                ),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 201,
+        description: 'Return the Applicant ID',
+        content: new OA\JsonContent(ref: new Model(type: ResponseDto::class))
+    )]
+    #[OA\Response(
+        response: 400,
+        description: 'Invalid arguments',
+        content: new OA\JsonContent(ref: new Model(type: ResponseDto::class))
+    )]
+    public function apply(
+        ApplicantRepository $applicantRepository,
+        JobRepository $jobRepository,
+        Request $request,
+        string $id,
+        SerializerInterface $serializer
+    ): Response {
+        $applicant = $applicantRepository->find($id);
+
+        if ($applicant === null) {
+            return $this->jsonResponse('Applicant not found', ['id' => $id], 404);
+        }
+
+        $jsonParams = json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        $jobPost = $jobRepository->find($jsonParams['jobsApplied']);
+
+        if ($jobPost === null) {
+            return $this->jsonResponse('Job posts not found', ['id' => $id], 404);
+        }
+
+        $applicant->addJobsApplied($jobPost);
+
+        if (null === $jsonParams['jobsApplied'] || '' === $jsonParams['jobsApplied']) {
+            return $this->json('ID post not valid', 400);
+        }
+
+        $applicantRepository->save($applicant, true);
+        return $this->jsonResponse('Application successful', $serializer->serialize(
+            $applicant,
+            'json',
+            [AbstractNormalizer::IGNORED_ATTRIBUTES => ['__isCloning', 'applicants', 'company']]
+        ));
+    }
+
+    /**
+     * @throws JsonException
+     */
+    #[Route(path: "/job-applicants/remove/{id}", methods: ["PUT"])]
+    #[OA\Put(description: "Remove application for a job")]
+    #[OA\RequestBody(
+        description: "Remove application for a job",
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(
+                    property: "jobsApplied",
+                    type: "string",
+                    example: "ID of the job you want to remove"
+                ),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 201,
+        description: 'Return the Applicant ID',
+        content: new OA\JsonContent(ref: new Model(type: ResponseDto::class))
+    )]
+    #[OA\Response(
+        response: 400,
+        description: 'Invalid arguments',
+        content: new OA\JsonContent(ref: new Model(type: ResponseDto::class))
+    )]
+    public function removeApplication(
+        ApplicantRepository $applicantRepository,
+        JobRepository $jobRepository,
+        Request $request,
+        string $id,
+        SerializerInterface $serializer
+    ): Response {
+
+        $applicant = $applicantRepository->find($id);
+
+        if ($applicant === null) {
+            return $this->jsonResponse('Applicant not found', ['id' => $id], 404);
+        }
+
+        $jsonParams = json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        $jobPost = $jobRepository->find($jsonParams['jobsApplied']);
+
+        if ($jobPost === null) {
+            return $this->jsonResponse('Job posts not found', ['id' => $id], 404);
+        }
+
+        $applicant->removeJobsApplied($jobPost);
+
+        if (null === $jsonParams['jobsApplied'] || '' === $jsonParams['jobsApplied']) {
+            return $this->json('ID post not valid', 400);
+        }
+
+        $applicantRepository->save($applicant, true);
+        return $this->jsonResponse(
+            'Application successful removed',
+            $serializer->serialize($applicant, 'json')
+        );
+    }
+
+    /**
+     * @throws JsonException
+     */
+    #[Route(path: "/job-applicants", methods: ["GET"])]
+    #[OA\Get(description: "Return a list of applicants for a job posting
+     and the list of jobs applied for by an applicant. With some filters")]
+    #[OA\QueryParameter(name: "ApplicantId", example: "ID of the applicant")]
+    #[OA\QueryParameter(name: "jobId", example: "ID of the job post")]
+    #[OA\Response(
+        response: 200,
+        description: "List of job posts response",
+        content: new OA\JsonContent(ref: new Model(type: ResponseDto::class))
+    )]
+    public function find(
+        EntityManagerInterface $entityManager,
+        Request $request,
+        SerializerInterface $serializer
+    ): JsonResponse {
+        $ApplicantId = $request->get('ApplicantId');
+        $jobPost = $request->get('jobId');
+
+        $queryBuilder = $entityManager
+            ->getRepository(Applicant::class)
+            ->createQueryBuilder('a')
+            ->leftJoin('a.jobsApplied', 'j', Join::ON);
+
+        if ($ApplicantId !== null) {
+            $queryBuilder->andWhere('a.id LIKE :ApplicantId')
+                ->setParameter(':ApplicantId', Uuid::fromString($ApplicantId)->toBinary());
+        }
+
+        if ($jobPost !== null) {
+            $queryBuilder->andWhere('j.id LIKE :jobId')
+                ->setParameter(':jobId', Uuid::fromString($jobPost)->toBinary());
+        }
+
+        $applications = $queryBuilder->getQuery()->execute();
+
+        return $this->jsonResponse(
+            'List of applications',
+            $serializer->serialize($applications, 'json', [AbstractNormalizer::IGNORED_ATTRIBUTES => ['company',
+                    '__isCloning', 'applicants']])
+        );
     }
 }

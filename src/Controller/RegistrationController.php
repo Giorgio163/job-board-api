@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
-use http\Exception\InvalidArgumentException;
 use Nelmio\ApiDocBundle\Annotation\Model;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -17,7 +16,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 #[OA\Tag(name: 'auth')]
 class RegistrationController extends AbstractController
 {
-    use FormatJsonResponse;
+    use JsonResponseFormat;
 
     /**
      * @throws \JsonException
@@ -48,14 +47,13 @@ class RegistrationController extends AbstractController
         UserRepository $userRepository,
         UserPasswordHasherInterface $hasher,
         ValidatorInterface $validator
-    ): JsonResponse
-    {
+    ): JsonResponse {
         $jsonParams = json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
 
         $user = new User();
 
         if (null === $jsonParams['password'] || '' === $jsonParams['password']) {
-            return $this->json('Password not valid',400);
+            return $this->json('Password not valid', 400);
         }
 
         $hashedPassword = $hasher->hashPassword($user, $jsonParams['password']);
@@ -80,6 +78,6 @@ class RegistrationController extends AbstractController
             $errorData[$violation->getPropertyPath()][] = $violation->getMessage();
         }
 
-        return $this->JsonResponse('Invalid inputs', $errorData, 400);
+        return $this->jsonResponse('Invalid inputs', $errorData, 400);
     }
 }

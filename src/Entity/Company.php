@@ -22,17 +22,21 @@ class Company
 
     #[Assert\NotBlank]
     #[Assert\Length(min: 3, max: 255)]
-    #[Assert\Regex(pattern: '/\d/',
+    #[Assert\Regex(
+        pattern: '/\d/',
         message: 'It should be a string',
-        match: false)]
+        match: false
+    )]
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
     #[Assert\NotBlank]
     #[Assert\Length(min: 3, max: 255)]
-    #[Assert\Regex(pattern: '/\d/',
+    #[Assert\Regex(
+        pattern: '/\d/',
         message: 'It should be a string',
-        match: false)]
+        match: false
+    )]
     #[ORM\Column(length: 255)]
     private ?string $description = null;
 
