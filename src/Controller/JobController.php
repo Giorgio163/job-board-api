@@ -19,7 +19,7 @@ use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-#[Route(path: '/api')]
+#[Route(path: '/api/v1')]
 #[OA\Tag(name: 'job post')]
 class JobController extends AbstractController
 {
@@ -29,7 +29,7 @@ class JobController extends AbstractController
      * @throws JsonException
      */
     #[Route(path: "/jobs", methods: ["POST"])]
-    #[OA\Post(description: "Create company")]
+    #[OA\Post(description: "Create a Job Post")]
     #[OA\RequestBody(
         description: "Json to create a job post",
         content: new OA\JsonContent(
@@ -93,7 +93,8 @@ class JobController extends AbstractController
           : $this->jsonResponse('Job post found', $serializer->serialize(
               $job,
               'json',
-              [AbstractNormalizer::IGNORED_ATTRIBUTES =>  ['jobPosts', '__isCloning']]
+              [AbstractNormalizer::IGNORED_ATTRIBUTES => ['jobPosts',
+                    '__isCloning', 'applicants']]
           ));
     }
 
@@ -167,7 +168,7 @@ class JobController extends AbstractController
         )
     )]
     #[OA\Response(
-        response: 201,
+        response: 200,
         description: 'Return the job post ID',
         content: new OA\JsonContent(ref: new Model(type: ResponseDto::class))
     )]
@@ -204,9 +205,9 @@ class JobController extends AbstractController
 
         $jobRepository->save($jobPost, true);
 
-        return $this->json((array)new ResponseDto('Company updated', [
+        return $this->json((array)new ResponseDto('Job Post updated', [
             'id' => (string)$jobPost->getId()
-        ], 201));
+        ]));
     }
 
     /**

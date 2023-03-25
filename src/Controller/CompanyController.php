@@ -15,7 +15,7 @@ use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-#[Route(path: '/api')]
+#[Route(path: '/api/v1')]
 #[OA\Tag(name: 'company')]
 class CompanyController extends AbstractController
 {
@@ -89,7 +89,7 @@ class CompanyController extends AbstractController
         $json = $serializer->serialize(
             $companies,
             'json',
-            [AbstractNormalizer::IGNORED_ATTRIBUTES => ['company', '__isCloning']]
+            [AbstractNormalizer::IGNORED_ATTRIBUTES => ['company', '__isCloning', 'jobsApplied']]
         );
 
         return $this->jsonResponse('List of companies:', $json);
@@ -109,7 +109,7 @@ class CompanyController extends AbstractController
         }
 
         $json = $serializer->serialize($company, 'json', [AbstractNormalizer::IGNORED_ATTRIBUTES => ['company',
-            '__isCloning']]);
+            '__isCloning',  'jobsApplied']]);
 
         return $this->jsonResponse('List of companies:', $json);
     }
@@ -135,7 +135,7 @@ class CompanyController extends AbstractController
         )
     )]
     #[OA\Response(
-        response: 201,
+        response: 200,
         description: 'Return the company ID',
         content: new OA\JsonContent(ref: new Model(type: ResponseDto::class))
     )]
@@ -178,7 +178,7 @@ class CompanyController extends AbstractController
 
         return $this->json((array)new ResponseDto('Company updated', [
             'id' => (string)$company->getId()
-        ], 201));
+        ]));
     }
 
     /**

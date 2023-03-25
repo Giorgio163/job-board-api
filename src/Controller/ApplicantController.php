@@ -22,7 +22,7 @@ use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\HttpFoundation\Response;
 
-#[Route(path: '/api')]
+#[Route(path: '/api/v1')]
 #[OA\Tag(name: 'applicant')]
 class ApplicantController extends AbstractController
 {
@@ -106,7 +106,7 @@ class ApplicantController extends AbstractController
             $serializer->serialize(
                 $applicant,
                 'json',
-                [AbstractNormalizer::IGNORED_ATTRIBUTES => ['__isCloning', 'applicants', 'company']]
+                [AbstractNormalizer::IGNORED_ATTRIBUTES => ['__isCloning', 'applicants', 'jobPosts', 'company']]
             )
         );
     }
@@ -127,7 +127,11 @@ class ApplicantController extends AbstractController
             return $this->jsonResponse('Applicant not found', ['id' => $id], 404);
         }
 
-        return $this->jsonResponse('Applicant by ID', $serializer->serialize($applicant, 'json'));
+        return $this->jsonResponse('Applicant by ID', $serializer->serialize(
+            $applicant,
+            'json',
+            [AbstractNormalizer::IGNORED_ATTRIBUTES => ['__isCloning', 'applicants', 'jobPosts']]
+        ));
     }
 
     /**
@@ -150,7 +154,7 @@ class ApplicantController extends AbstractController
         )
     )]
     #[OA\Response(
-        response: 201,
+        response: 200,
         description: 'Return the Applicant ID',
         content: new OA\JsonContent(ref: new Model(type: ResponseDto::class))
     )]
@@ -287,7 +291,7 @@ class ApplicantController extends AbstractController
         )
     )]
     #[OA\Response(
-        response: 201,
+        response: 200,
         description: 'Return the Applicant ID',
         content: new OA\JsonContent(ref: new Model(type: ResponseDto::class))
     )]
@@ -327,7 +331,11 @@ class ApplicantController extends AbstractController
         $applicantRepository->save($applicant, true);
         return $this->jsonResponse(
             'Application successful removed',
-            $serializer->serialize($applicant, 'json')
+            $serializer->serialize(
+                $applicant,
+                'json',
+                [AbstractNormalizer::IGNORED_ATTRIBUTES => ['__isCloning', 'applicants', 'company']]
+            )
         );
     }
 

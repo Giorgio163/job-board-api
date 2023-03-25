@@ -18,7 +18,7 @@ REST API to handle job posts created to learn Symfony, Doctrine ORM, and API doc
 1. Clone the repository:
 
    ```
-   git clone git@github.com
+   git clone https://gitlab.com/TiPhOoN/job-board-api.git
    ```
 
 2. Access the directory:
@@ -55,7 +55,7 @@ REST API to handle job posts created to learn Symfony, Doctrine ORM, and API doc
 
 8. Go to http://localhost:8000
 
-To generate the jwt keys, run the following command: `docker-compose run -it php-fpm php bin/console lexik:jwt:generate-keypair`.*
+To generate the jwt keys, run the following command: `docker-compose run -it php-fpm php bin/console lexik:jwt:generate-keypair`.
 ## Routes
 To access the API documentation, go to http://localhost:8000/api/doc.
 
@@ -82,4 +82,4 @@ Run PHPStan:
 vendor/bin/phpstan analyse src
 ```
 ## Learn More
-To know more about the development of Symfony applications, [check the official documentation](https://symfony.com/doc/current/index.html).d
+To know more about the development of Symfony applications, [check the official documentation](https://symfony.com/doc/current/index.html).

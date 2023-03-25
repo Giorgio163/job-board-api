@@ -13,6 +13,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use OpenApi\Attributes as OA;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
+#[Route(path: '/api/v1')]
 #[OA\Tag(name: 'auth')]
 class RegistrationController extends AbstractController
 {
@@ -21,7 +22,7 @@ class RegistrationController extends AbstractController
     /**
      * @throws \JsonException
      */
-    #[Route(path: "/api/auth/signup", methods: ["POST"])]
+    #[Route(path: "/auth/signup", methods: ["POST"])]
     #[OA\Post(description: "Create User")]
     #[OA\RequestBody(
         description: "Json to create a User",
