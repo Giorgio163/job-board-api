@@ -190,7 +190,11 @@ class ApplicantController extends AbstractController
         }
 
         $applicantRepository->save($applicant, true);
-         return $this->jsonResponse('Applicant updated', $serializer->serialize($applicant, 'json'));
+         return $this->jsonResponse('Applicant updated', $serializer->serialize(
+             $applicant,
+             'json',
+             [AbstractNormalizer::IGNORED_ATTRIBUTES => ['jobsApplied']]
+         ));
     }
 
     /**

@@ -17,7 +17,7 @@ class UserApiController
         description: "Payload to authenticate a User",
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: "email", type: "string", example: "test@email.com"),
+                new OA\Property(property: "username", type: "string", example: "test@email.com"),
                 new OA\Property(property: "password", type: "string", example: "insert password")
             ]
         )
