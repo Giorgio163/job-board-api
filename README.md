@@ -18,7 +18,7 @@ REST API to handle job posts created to learn Symfony, Doctrine ORM, and API doc
 1. Clone the repository:
 
    ```
-   git clone https://gitlab.com/TiPhOoN/job-board-api.git
+   git clone https://github.com/Giorgio163/job-board-api.git
    ```
 
 2. Access the directory:
