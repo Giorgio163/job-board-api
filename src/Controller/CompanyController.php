@@ -72,9 +72,8 @@ class CompanyController extends AbstractController
 
         $repository->save($company, true);
 
-        return $this->json((array)new ResponseDto('Company created', [
-            'id' => (string)$company->getId()
-        ], 201));
+        $data = [ 'id' => (string)$company->getId() ];
+        return $this->jsonResponse('Company created', $data, 201);
     }
 
     /**
@@ -148,7 +147,8 @@ class CompanyController extends AbstractController
         CompanyRepository $repository,
         Request $request,
         string $id,
-        ValidatorInterface $validator
+        ValidatorInterface $validator,
+        SerializerInterface $serializer
     ): Response {
         $company = $repository->find($id);
 
@@ -176,9 +176,11 @@ class CompanyController extends AbstractController
 
         $repository->save($company, true);
 
-        return $this->json((array)new ResponseDto('Company updated', [
-            'id' => (string)$company->getId()
-        ]));
+        return $this->jsonResponse('Company updated', $serializer->serialize(
+            $company,
+            'json',
+            [AbstractNormalizer::IGNORED_ATTRIBUTES => ['company', 'jobsApplied']]
+        ));
     }
 
     /**

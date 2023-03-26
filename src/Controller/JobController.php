@@ -76,9 +76,8 @@ class JobController extends AbstractController
 
         $jobRepository->save($job, true);
 
-        return $this->json((array)new ResponseDto('Job post Created', [
-            'id' => (string)$company->getId()
-        ], 201));
+        $data = [ 'id' => (string)$job->getId() ];
+        return $this->jsonResponse('Job post created', $data, 201);
     }
 
     /**
@@ -181,7 +180,8 @@ class JobController extends AbstractController
         JobRepository $jobRepository,
         Request $request,
         string $id,
-        ValidatorInterface $validator
+        ValidatorInterface $validator,
+        SerializerInterface $serializer
     ): Response {
         $jobPost = $jobRepository->find($id);
 
@@ -205,9 +205,11 @@ class JobController extends AbstractController
 
         $jobRepository->save($jobPost, true);
 
-        return $this->json((array)new ResponseDto('Job Post updated', [
-            'id' => (string)$jobPost->getId()
-        ]));
+        return $this->jsonResponse('Applicant updated', $serializer->serialize(
+            $jobPost,
+            'json',
+            [AbstractNormalizer::IGNORED_ATTRIBUTES => ['jobsApplied', 'jobPosts', '__isCloning']]
+        ));
     }
 
     /**
