@@ -4,7 +4,7 @@
 
 # JOB-BOARD-API
 
-REST API to handle job posts created to learn Symfony, Doctrine ORM, and API documentation with Swagger. This application covers topics such as Serialization, Swagger, Doctrine, Validation, PHPStan, PHP Codesniffer, and others.
+The Job Board API is a RESTful API developed with Symfony for managing companies, job postings, applicants, and job applications. Users can sign up and log in to use the various routes, including creating, reading, updating, and deleting, as well as searching and filtering job postings. The API offers user authentication, input data validation, and quality tools such as PHPStan and PHPCodeSniffer.
 
 ## Requirements
 
